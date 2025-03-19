@@ -1,106 +1,75 @@
 #!/bin/bash
 
-DOCKER_PATH="/usr/bin/docker"
+THROW_ERROR=0
+BOLD_G='\e[1;32m'
+BOLD_R='\e[1;31m'
+BOLD_Y='\e[1;33m'
+TEXT_0='\e[0m'
 
-THROW_ERROR=""
-BOLD_GREEN='\e[1;32m'
-BOLD_RED='\e[1;31m'
-BOLD_YELLOW='\e[1;33m'
-TXT_RESET='\e[0m'
-
+function log_title {
+    echo ""
+    echo -e -n "${TEXT_0}"
+    echo "##########################################################################"
+    echo -e "$*"
+    echo "##########################################################################"
+    echo -e -n "${TEXT_0}"
+}
 function log_error {
-    echo -e -n "${BOLD_RED}" && echo -e "$*" && echo -e -n "${TXT_RESET}"
-    exit 1
+    echo -e -n "${BOLD_R}" && echo -e "$(date -u +"%Y-%m-%dT%H:%M:%S") - $*" && echo -e -n "${TEXT_0}"
+    THROW_ERROR=1
 }
 function log_warn {
-    echo -e -n "${BOLD_YELLOW}" && echo -e "$*" && echo -e -n "${TXT_RESET}"
+    echo -e -n "${BOLD_Y}" && echo -e "$(date -u +"%Y-%m-%dT%H:%M:%S") - $*" && echo -e -n "${TEXT_0}"
 }
 function log_succe {
-    echo -e -n "${BOLD_GREEN}" && echo -e "$*" && echo -e -n "${TXT_RESET}"
+    echo -e -n "${BOLD_G}" && echo -e "$(date -u +"%Y-%m-%dT%H:%M:%S") - $*" && echo -e -n "${TEXT_0}"
 }
 function log {
-    echo -e -n "${TXT_RESET}" && echo -e "$*" && echo -e -n "${TXT_RESET}"
+    echo -e -n "${TEXT_0}" && echo -e "$(date -u +"%Y-%m-%dT%H:%M:%S") - $*" && echo -e -n "${TEXT_0}"
 }
 
-showUsage(){
-cat << EOF
+# Function to check if required variables are set
+# For each variable passed, it checks if the variable is set. If a variable is not set, it logs an error message.
+# If the THROW_ERROR flag is set to 1, the function exits with an error code.
+function checking_variables() {
+    log_title "Checking variables"
 
-DESCRIPTION:
-  This script permits to deploy docker component.
+    LOCAL_REQUIRED_VARS=${*}
+    [ -z "$LOCAL_REQUIRED_VARS" ] && log_error "No variables in parameters."
 
-USAGE:
-  $(basename "$0") [start|stop|restart|remove|log]
-
-OPTIONS:
-  --help                        Show this help message and exit.
-  --start                       Start container.
-  --stop                        Stop container.
-  --restart                     Restart container.
-  --remove                      Remove container.
-  --log                         Logs container.
-
-EOF
+    for VAR in $LOCAL_REQUIRED_VARS; do
+        if [ -z "$(eval echo \$$VAR)" ]; then
+            log_error "Variable $VAR is not set." >&2
+        else
+            log "Variable $VAR is set." >&2
+        fi
+    done
+    [ $THROW_ERROR -eq 1 ] && exit 1
 }
 
-stop_container(){
-    ${DOCKER_PATH} stop ${SERVICE_NAME}
+# Function to send an SMS to the administrator
+# This function first checks if the necessary variables (SENDER_API_URL, SMS_MESSAGE and ADMIN_PHONES) are defined.
+# If any of the variables are empty, the function returns without sending a message.
+# Otherwise, it creates a message, sends it to the specified URL via an HTTP POST request,
+# and logs the HTTP response code. Depending on the response code, it logs the success or failure of the message sending.
+function send_sms_to_admin() {
+    NOTIF_VARS="SENDER_API_URL SMS_MESSAGE ADMIN_PHONES"
+    for VAR in $NOTIF_VARS; do
+        if [ -z "$(eval echo \$$VAR)" ]; then
+            return 0
+        fi
+    done
 
-    log_succe "Container ${SERVICE_NAME} stopped"
-}
-
-restart_container(){
-    stop_container
-    remove_container
-    start_container
-}
-
-remove_container(){
-    ${DOCKER_PATH} rm --force ${SERVICE_NAME}
-
-    log_succe "Container ${SERVICE_NAME} removed"
-}
-
-logs_container(){
-    ${DOCKER_PATH} logs ${SERVICE_NAME} || \
-    log_error "Logs container ${SERVICE_NAME} failed"
-}
-
-main(){
-
-######################
-### MAIN
-######################
-if [[ -z $1 ]]; then
-    echo "[ERROR] No parameters find."
-    showUsage
-    exit 1
-fi
-case $1 in
-    --help)
-    showUsage
-    exit 0
-    ;;
-    --start)
-    start_container
-    ;;
-    --stop)
-    stop_container
-    ;;
-    --restart)
-    restart_container
-    ;;
-    --remove)
-    remove_container
-    ;;
-    --log)
-    logs_container
-    ;;
-    *)
-    echo "[ERROR] No such option: '$1'"
-    showUsage
-    exit 1
-    ;;
-esac
-shift
-
+    http_code=$(
+        curl    -s -o /dev/null -w "%{http_code}" \
+                --location "${SENDER_API_URL}" \
+                --header 'Content-Type: application/x-www-form-urlencoded' \
+                --data-urlencode "recipient=${ADMIN_PHONES}" \
+                --data-urlencode "message=${SMS_MESSAGE}"\
+        )
+    if [ "$http_code" -eq 200 ]; then
+        log "Sending message to admin success"
+    else
+        log_error "Sending message to admin failed"
+    fi
 }

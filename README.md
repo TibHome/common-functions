@@ -22,14 +22,11 @@ source /usr/local/bin/tibhome_common_functions
 
 List of all functions:
 
-- log_error : Red print for error and exit program
+- log_title : Standard print for title
+- log_error : Red print for error and set `THROW_ERROR` to 1
 - log_warn : Yellow print for ward
 - log_succe : Green print for success
 - log : Standard print
 
-- showUsage
-- stop_container
-- restart_container
-- remove_container
-- logs_container
-- main
+- checking_variables : Check if required variables are set (need variabes list as parameter)
+- send_sms_to_admin : Send SMS via **sms-sender-api** (variables needs: `SENDER_API_URL`, `SMS_MESSAGE` and `ADMIN_PHONES`)
