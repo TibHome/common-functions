@@ -48,17 +48,26 @@ function checking_variables() {
 }
 
 # Function to send an SMS to the administrator
-# This function first checks if the necessary variables (SENDER_API_URL, SMS_MESSAGE and ADMIN_PHONES) are defined.
+# This function first checks if the necessary variables (SENDER_API_URL and ADMIN_PHONES) are defined.
 # If any of the variables are empty, the function returns without sending a message.
 # Otherwise, it creates a message, sends it to the specified URL via an HTTP POST request,
 # and logs the HTTP response code. Depending on the response code, it logs the success or failure of the message sending.
 function send_sms_to_admin() {
-    NOTIF_VARS="SENDER_API_URL SMS_MESSAGE ADMIN_PHONES"
+    NOTIF_VARS="SENDER_API_URL ADMIN_PHONES"
     for VAR in $NOTIF_VARS; do
         if [ -z "$(eval echo \$$VAR)" ]; then
             return 0
         fi
     done
+
+    SMS_MESSAGE=""
+    if [ -n "$1" ]; then
+        SMS_MESSAGE=${1}
+    else
+        log_error "No message define for sms send."
+        THROW_ERROR=0
+        return 0
+    fi
 
     http_code=$(
         curl    -s -o /dev/null -w "%{http_code}" \
@@ -71,5 +80,6 @@ function send_sms_to_admin() {
         log "Sending message to admin success"
     else
         log_error "Sending message to admin failed"
+        THROW_ERROR=0
     fi
 }

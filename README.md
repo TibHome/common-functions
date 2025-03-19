@@ -29,4 +29,4 @@ List of all functions:
 - log : Standard print
 
 - checking_variables : Check if required variables are set (need variabes list as parameter)
-- send_sms_to_admin : Send SMS via **sms-sender-api** (variables needs: `SENDER_API_URL`, `SMS_MESSAGE` and `ADMIN_PHONES`)
+- send_sms_to_admin : Send SMS via **sms-sender-api** (env-variables needs: `SENDER_API_URL` and `ADMIN_PHONES`, message need as parameters)
