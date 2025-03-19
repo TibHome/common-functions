@@ -69,12 +69,14 @@ function send_sms_to_admin() {
         return 0
     fi
 
+    MESSAGE_NO_SPACES=$(echo "$SMS_MESSAGE" | sed 's/^[ \t]*//')
+
     http_code=$(
         curl    -s -o /dev/null -w "%{http_code}" \
                 --location "${SENDER_API_URL}" \
                 --header 'Content-Type: application/x-www-form-urlencoded' \
                 --data-urlencode "recipient=${ADMIN_PHONES}" \
-                --data-urlencode "message=${SMS_MESSAGE}"\
+                --data-urlencode "message=${MESSAGE_NO_SPACES}"\
         )
     if [ "$http_code" -eq 200 ]; then
         log "Sending message to admin success"
