@@ -79,9 +79,9 @@ function send_sms_to_admin() {
                 --data-urlencode "message=${MESSAGE_NO_SPACES}"\
         )
     if [ "$http_code" -eq 200 ]; then
-        log "Sending message to admin success"
+        log "[SMS] Sending message to admin success"
     else
-        log_error "Sending message to admin failed"
+        log_error "[SMS] Sending message to admin failed"
         THROW_ERROR=0
     fi
 }
