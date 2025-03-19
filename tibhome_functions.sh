@@ -32,8 +32,6 @@ function log {
 # For each variable passed, it checks if the variable is set. If a variable is not set, it logs an error message.
 # If the THROW_ERROR flag is set to 1, the function exits with an error code.
 function checking_variables() {
-    log_title "Checking variables"
-
     LOCAL_REQUIRED_VARS=${*}
     [ -z "$LOCAL_REQUIRED_VARS" ] && log_error "No variables in parameters."
 
