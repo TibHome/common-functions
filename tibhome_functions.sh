@@ -13,6 +13,7 @@ function log_title {
     echo -e "$*"
     echo "##########################################################################"
     echo -e -n "${TEXT_0}"
+    echo ""
 }
 function log_error {
     echo -e -n "${BOLD_R}" && echo -e "$(date -u +"%Y-%m-%dT%H:%M:%S") - $*" && echo -e -n "${TEXT_0}"
