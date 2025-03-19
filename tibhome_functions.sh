@@ -45,7 +45,6 @@ function checking_variables() {
         fi
     done
     [ $THROW_ERROR -eq 1 ] && exit 1
-    echo "" && echo ""
 }
 
 # Function to send an SMS to the administrator
