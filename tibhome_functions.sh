@@ -6,6 +6,8 @@ BOLD_R='\e[1;31m'
 BOLD_Y='\e[1;33m'
 TEXT_0='\e[0m'
 
+# Log a title with a decorative border
+# Parameters: $* (title text)
 function log_title {
     echo ""
     echo -e -n "${TEXT_0}"
@@ -15,23 +17,34 @@ function log_title {
     echo -e -n "${TEXT_0}"
     echo ""
 }
+
+# Log an error message with a timestamp
+# Parameters: $* (error message)
 function log_error {
     echo -e -n "${BOLD_R}" && echo -e "$(date -u +"%Y-%m-%dT%H:%M:%S") - $*" && echo -e -n "${TEXT_0}"
     THROW_ERROR=1
 }
+
+# Log a warning message with a timestamp
+# Parameters: $* (warning message)
 function log_warn {
     echo -e -n "${BOLD_Y}" && echo -e "$(date -u +"%Y-%m-%dT%H:%M:%S") - $*" && echo -e -n "${TEXT_0}"
 }
+
+# Log a success message with a timestamp
+# Parameters: $* (success message)
 function log_succe {
     echo -e -n "${BOLD_G}" && echo -e "$(date -u +"%Y-%m-%dT%H:%M:%S") - $*" && echo -e -n "${TEXT_0}"
 }
+
+# Log a general message with a timestamp
+# Parameters: $* (message)
 function log {
     echo -e -n "${TEXT_0}" && echo -e "$(date -u +"%Y-%m-%dT%H:%M:%S") - $*" && echo -e -n "${TEXT_0}"
 }
 
-# Function to check if required variables are set
-# For each variable passed, it checks if the variable is set. If a variable is not set, it logs an error message.
-# If the THROW_ERROR flag is set to 1, the function exits with an error code.
+# Check if required variables are set
+# Parameters: $* (list of variable names)
 function checking_variables() {
     LOCAL_REQUIRED_VARS=${*}
     [ -z "$LOCAL_REQUIRED_VARS" ] && log_error "No variables in parameters."
@@ -46,11 +59,9 @@ function checking_variables() {
     [ $THROW_ERROR -eq 1 ] && exit 1
 }
 
-# Function to send an SMS to the administrator
-# This function first checks if the necessary variables (SENDER_API_URL and ADMIN_PHONES) are defined.
-# If any of the variables are empty, the function returns without sending a message.
-# Otherwise, it creates a message, sends it to the specified URL via an HTTP POST request,
-# and logs the HTTP response code. Depending on the response code, it logs the success or failure of the message sending.
+# Send an SMS to the admin
+# Parameters: $1 (SMS message)
+# Env variables SENDER_API_URL ADMIN_PHONES must be set
 function send_sms_to_admin() {
     NOTIF_VARS="SENDER_API_URL ADMIN_PHONES"
     for VAR in $NOTIF_VARS; do
